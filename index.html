@@ -1,284 +1,290 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="hi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bhakti Status Creator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Baloo 2', cursive;
-      background: black;
-      overflow: hidden;
-    }
-
-    .header {
-      background: #6e00b3;
-      color: white;
-      padding: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .header input {
-      padding: 8px;
-      border: none;
-      border-radius: 6px;
-      width: 60%;
-    }
-
-    .create-btn {
-      background: white;
-      color: #6e00b3;
-      padding: 8px 15px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      padding: 10px;
-      background: #fff;
-      gap: 10px;
-    }
-
-    .tag {
-      display: flex;
-      background: #f3f0ff;
-      color: #333;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .tag.active {
-      background: #6e00b3;
-      color: white;
-    }
-
-    .tag:hover {
-      background: #e0d4ff;
-    }
-
-    .tag.active:hover {
-      background: #5500a0;
-    }
-
-    #global-mute, #download-btn {
-      position: fixed;
-      z-index: 10;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 30px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #global-mute {
-      top: 200px;
-      right: 20px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-    }
-
-    #download-btn {
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255,255,255,0.8);
-      color: black;
-      font-weight: bold;
-    }
-
-    .container {
-      height: 70vh;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      text-align: center;
-                    }
-
-    .reel {
-
-      scroll-snap-align: start;
-      position: relative;
-    }
-
-    video {
-      height:100%;
-    width: 90%;    
-    object-fit: cover;
-    }
-
-    .footer-btn {
-      display: block;
-      width: 90%;
-      margin: 10px auto;
-      padding: 12px;
-      background-color: #f6f6f6;
-      border: 1px solid #ccc;
-      text-align: center;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-      color: #333;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Header -->
-  <div class="header">
-    <input type="text" placeholder="Search..." />
-    <div class="create-btn">+ Create</div>
-  </div>
-
-  <!-- Tags -->
-
-  <div class="tags">
-    <div class="tag active" data-tag="ALL">ALL</div>
-    <div class="tag" data-tag="shiv">🔱 shiv</div>
-    <div class="tag" data-tag="Birthday">🎂 Birthday</div>
-    <div class="tag" data-tag="Good Morning">🌞 Good Morning</div>
-  </div>
-
-  <!-- Mute & Download buttons -->
-  <button id="global-mute">🔇</button>
-  <button id="download-btn">⬇️ Download</button>
-
-  <!-- Reels Container -->
-  <div class="container" id="container">
-  
-  </div>
-
-  <script>
-    const videos = document.querySelectorAll("video");
-    const reels = document.querySelectorAll(".reel");
-    const muteBtn = document.getElementById("global-mute");
-    const downloadBtn = document.getElementById("download-btn");
-    let isMuted = true;
-    let currentVisibleVideo = null;
-    const videoContainer = document.getElementById('videos');
-
-    // Set all videos muted
-    videos.forEach(video => {
-      video.muted = true;
-    });
-
-    // Mute / Unmute All
-    muteBtn.addEventListener("click", () => {
-      isMuted = !isMuted;
-      const allVideos = document.querySelectorAll("video");
-      allVideos.forEach(video => video.muted = isMuted);
-      muteBtn.textContent = isMuted ? "🔇" : "🔊";
-    });
-
-    // Fetch videos by tag
-    async function loadVideos(tag = 'ALL') {
-      try {
-        const url = tag === 'ALL' ? '/videos' : `/videos?tag=${encodeURIComponent(tag)}`;
-        const res = await fetch(url);
-        const videos = await res.json();
-
-        // Clear existing videos
-        const container = document.getElementById('container');
-        container.innerHTML = '';
-
-        videos.forEach(v => addVideoToDOM(v.url));
-        setupObserver(); // Setup observer after videos are loaded
-      } catch (err) {
-        console.error("Error fetching videos:", err);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bhakti Status Creator</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
-    }
 
-    function addVideoToDOM(url) {
-      // Create the outer div with class "reel"
-      const reelDiv = document.createElement('div');
-      reelDiv.className = 'reel';
-
-      // Create the video element
-      const vid = document.createElement('video');
-      vid.src = url;
-      vid.controls = true;
-      vid.preload = 'auto';
-      vid.muted = true;
-      vid.loop = true;
-      vid.playsInline = true;
-      vid.autoplay = true;
-
-      // Append video to the reel div
-      reelDiv.appendChild(vid);
-
-      // Add the reel to the container
-      const container = document.getElementById('container');
-      container.appendChild(reelDiv); // Add in order (newest first from database)
-    }
-
-    
-    // Scroll Play using IntersectionObserver
-    function setupObserver() {
-      const allReels = document.querySelectorAll('.reel');
-      
-      const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-          const video = entry.target.querySelector("video");
-          if (video) {
-            if (entry.isIntersecting) {
-              currentVisibleVideo = video;
-              video.play().catch(e => console.log(e));
-            } else {
-              video.pause();
-            }
-          }
-        });
-      }, { threshold: 0.6 });
-
-      allReels.forEach(reel => observer.observe(reel));
-    }
-
-    // Download current video
-    downloadBtn.addEventListener("click", () => {
-      if (currentVisibleVideo) {
-        const videoSrc = currentVisibleVideo.src;
-        const a = document.createElement("a");
-        a.href = videoSrc;
-        a.download = "reel.mp4";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } else {
-        alert("कोई वीडियो नहीं चल रही है");
+      body {
+        font-family: "Baloo 2", cursive;
+        background: black;
+        overflow: hidden;
       }
-    });
-    
-    // Tag click functionality
-    document.querySelectorAll('.tag').forEach(tag => {
-      tag.addEventListener('click', function() {
-        // Remove active class from all tags
-        document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
-        
-        // Add active class to clicked tag
-        this.classList.add('active');
-        
-        // Get tag value and load videos
-        const tagValue = this.getAttribute('data-tag');
-        loadVideos(tagValue);
+
+      .header {
+        background: #6e00b3;
+        color: white;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .header input {
+        padding: 8px;
+        border: none;
+        border-radius: 6px;
+        width: 60%;
+      }
+
+      .create-btn {
+        background: white;
+        color: #6e00b3;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 10px;
+        background: #fff;
+        gap: 10px;
+      }
+
+      .tag {
+        display: flex;
+        background: #f3f0ff;
+        color: #333;
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .tag.active {
+        background: #6e00b3;
+        color: white;
+      }
+
+      .tag:hover {
+        background: #e0d4ff;
+      }
+
+      .tag.active:hover {
+        background: #5500a0;
+      }
+
+      #global-mute,
+      #download-btn {
+        position: fixed;
+        z-index: 10;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 30px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      #global-mute {
+        top: 200px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+      }
+
+      #download-btn {
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.8);
+        color: black;
+        font-weight: bold;
+      }
+
+      .container {
+        height: 70vh;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        text-align: center;
+      }
+
+      .reel {
+        scroll-snap-align: start;
+        position: relative;
+      }
+
+      video {
+        height: 100%;
+        width: 90%;
+        object-fit: cover;
+      }
+
+      .footer-btn {
+        display: block;
+        width: 90%;
+        margin: 10px auto;
+        padding: 12px;
+        background-color: #f6f6f6;
+        border: 1px solid #ccc;
+        text-align: center;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="header">
+      <input type="text" placeholder="Search..." />
+      <div class="create-btn">+ Create</div>
+    </div>
+
+    <!-- Tags -->
+
+    <div class="tags">
+      <div class="tag active" data-tag="ALL">ALL</div>
+      <div class="tag" data-tag="shiv">🔱 shiv</div>
+      <div class="tag" data-tag="birthday">🎂 Birthday</div>
+      <div class="tag" data-tag="morning">🌞 Good Morning</div>
+    </div>
+
+    <!-- Mute & Download buttons -->
+    <button id="global-mute">🔇</button>
+    <button id="download-btn">⬇️ Download</button>
+
+    <!-- Reels Container -->
+    <div class="container" id="container"></div>
+
+    <script>
+      const videos = document.querySelectorAll("video");
+      const reels = document.querySelectorAll(".reel");
+      const muteBtn = document.getElementById("global-mute");
+      const downloadBtn = document.getElementById("download-btn");
+      let isMuted = true;
+      let currentVisibleVideo = null;
+      const videoContainer = document.getElementById("videos");
+
+      // Set all videos muted
+      videos.forEach((video) => {
+        video.muted = true;
       });
-    });
 
-    // Load videos when page loads
-    loadVideos();
-  </script>
+      // Mute / Unmute All
+      muteBtn.addEventListener("click", () => {
+        isMuted = !isMuted;
+        const allVideos = document.querySelectorAll("video");
+        allVideos.forEach((video) => (video.muted = isMuted));
+        muteBtn.textContent = isMuted ? "🔇" : "🔊";
+      });
 
-</body>
+      // Fetch videos by tag
+      async function loadVideos(tag = "ALL") {
+        try {
+          const url =
+            tag === "ALL"
+              ? "/videos"
+              : `/videos?tag=${encodeURIComponent(tag)}`;
+          const res = await fetch(url);
+          const videos = await res.json();
+
+          // Clear existing videos
+          const container = document.getElementById("container");
+          container.innerHTML = "";
+
+          videos.forEach((v) => addVideoToDOM(v.url));
+          setupObserver(); // Setup observer after videos are loaded
+        } catch (err) {
+          console.error("Error fetching videos:", err);
+        }
+      }
+
+      function addVideoToDOM(url) {
+        // Create the outer div with class "reel"
+        const reelDiv = document.createElement("div");
+        reelDiv.className = "reel";
+
+        // Create the video element
+        const vid = document.createElement("video");
+        vid.src = url;
+        vid.controls = true;
+        vid.preload = "auto";
+        vid.muted = true;
+        vid.loop = true;
+        vid.playsInline = true;
+        vid.autoplay = true;
+
+        // Append video to the reel div
+        reelDiv.appendChild(vid);
+
+        // Add the reel to the container
+        const container = document.getElementById("container");
+        container.appendChild(reelDiv); // Add in order (newest first from database)
+      }
+
+      // Scroll Play using IntersectionObserver
+      function setupObserver() {
+        const allReels = document.querySelectorAll(".reel");
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              const video = entry.target.querySelector("video");
+              if (video) {
+                if (entry.isIntersecting) {
+                  currentVisibleVideo = video;
+                  video.play().catch((e) => console.log(e));
+                } else {
+                  video.pause();
+                }
+              }
+            });
+          },
+          { threshold: 0.6 },
+        );
+
+        allReels.forEach((reel) => observer.observe(reel));
+      }
+
+      // Download current video
+      downloadBtn.addEventListener("click", () => {
+        if (currentVisibleVideo) {
+          const videoSrc = currentVisibleVideo.src;
+          const a = document.createElement("a");
+          a.href = videoSrc;
+          a.download = "reel.mp4";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          alert("कोई वीडियो नहीं चल रही है");
+        }
+      });
+
+      // Tag click functionality
+      document.querySelectorAll(".tag").forEach((tag) => {
+        tag.addEventListener("click", function () {
+          // Remove active class from all tags
+          document
+            .querySelectorAll(".tag")
+            .forEach((t) => t.classList.remove("active"));
+
+          // Add active class to clicked tag
+          this.classList.add("active");
+
+          // Get tag value and load videos
+          const tagValue = this.getAttribute("data-tag");
+          loadVideos(tagValue);
+        });
+      });
+
+      // Load videos when page loads
+      loadVideos();
+    </script>
+  </body>
 </html>
