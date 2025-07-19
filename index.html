@@ -169,7 +169,8 @@
     // Mute / Unmute All
     muteBtn.addEventListener("click", () => {
       isMuted = !isMuted;
-      videos.forEach(video => video.muted = isMuted);
+      const allVideos = document.querySelectorAll("video");
+      allVideos.forEach(video => video.muted = isMuted);
       muteBtn.textContent = isMuted ? "🔇" : "🔊";
     });
 
@@ -180,6 +181,7 @@
         const videos = await res.json();
 
         videos.forEach(v => addVideoToDOM(v.url));
+        setupObserver(); // Setup observer after videos are loaded
       } catch (err) {
         console.error("Error fetching videos:", err);
       }
@@ -210,24 +212,30 @@
 
     
     // Scroll Play using IntersectionObserver
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        const video = entry.target.querySelector("video");
-        if (entry.isIntersecting) {
-          currentVisibleVideo = video;
-          video.play().catch(e => console.log(e));
-        } else {
-          video.pause();
-        }
-      });
-    }, { threshold: 0.6 });
+    function setupObserver() {
+      const allReels = document.querySelectorAll('.reel');
+      
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const video = entry.target.querySelector("video");
+          if (video) {
+            if (entry.isIntersecting) {
+              currentVisibleVideo = video;
+              video.play().catch(e => console.log(e));
+            } else {
+              video.pause();
+            }
+          }
+        });
+      }, { threshold: 0.6 });
 
-    reels.forEach(reel => observer.observe(reel));
+      allReels.forEach(reel => observer.observe(reel));
+    }
 
     // Download current video
     downloadBtn.addEventListener("click", () => {
       if (currentVisibleVideo) {
-        const videoSrc = currentVisibleVideo.querySelector("source").src;
+        const videoSrc = currentVisibleVideo.src;
         const a = document.createElement("a");
         a.href = videoSrc;
         a.download = "reel.mp4";
@@ -238,6 +246,9 @@
         alert("कोई वीडियो नहीं चल रही है");
       }
     });
+    
+    // Load videos when page loads
+    loadVideos();
   </script>
 
 </body>
