@@ -18,12 +18,21 @@ mongoose
 const Video = mongoose.model('Video', {
   url: String,
   public_id: String,
+  tag: String, // Add tag field
   uploadedAt: { type: Date, default: Date.now },
 });
 
 app.get('/videos', async (req, res) => {
   try {
-    const videos = await Video.find().sort({ uploadedAt: -1 });
+    const tag = req.query.tag;
+    let query = {};
+    
+    // If tag is specified and not "ALL", filter by tag
+    if (tag && tag !== 'ALL') {
+      query.tag = tag;
+    }
+    
+    const videos = await Video.find(query).sort({ uploadedAt: -1 });
     res.json(videos);
   } catch (err) {
     res.status(500).json({ error: '❌ Failed to fetch videos' });

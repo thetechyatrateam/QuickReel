@@ -52,13 +52,27 @@
     }
 
     .tag {
-    display: flex;
+      display: flex;
       background: #f3f0ff;
       color: #333;
       padding: 8px 12px;
       border-radius: 20px;
       font-size: 14px;
       cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .tag.active {
+      background: #6e00b3;
+      color: white;
+    }
+
+    .tag:hover {
+      background: #e0d4ff;
+    }
+
+    .tag.active:hover {
+      background: #5500a0;
     }
 
     #global-mute, #download-btn {
@@ -132,10 +146,10 @@
   <!-- Tags -->
 
   <div class="tags">
-    <div class="tag">  ALL</div>
-    <div class="tag">🔱 shiv</div>
-    <div class="tag">🎂 Birthday</div>
-    <div class="tag">🌞 Good Morning</div>
+    <div class="tag active" data-tag="ALL">ALL</div>
+    <div class="tag" data-tag="shiv">🔱 shiv</div>
+    <div class="tag" data-tag="Birthday">🎂 Birthday</div>
+    <div class="tag" data-tag="Good Morning">🌞 Good Morning</div>
   </div>
 
   <!-- Mute & Download buttons -->
@@ -169,11 +183,16 @@
       muteBtn.textContent = isMuted ? "🔇" : "🔊";
     });
 
-    // Fetch all videos
-    async function loadVideos() {
+    // Fetch videos by tag
+    async function loadVideos(tag = 'ALL') {
       try {
-        const res = await fetch('/videos');
+        const url = tag === 'ALL' ? '/videos' : `/videos?tag=${encodeURIComponent(tag)}`;
+        const res = await fetch(url);
         const videos = await res.json();
+
+        // Clear existing videos
+        const container = document.getElementById('container');
+        container.innerHTML = '';
 
         videos.forEach(v => addVideoToDOM(v.url));
         setupObserver(); // Setup observer after videos are loaded
@@ -242,6 +261,21 @@
       }
     });
     
+    // Tag click functionality
+    document.querySelectorAll('.tag').forEach(tag => {
+      tag.addEventListener('click', function() {
+        // Remove active class from all tags
+        document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+        
+        // Add active class to clicked tag
+        this.classList.add('active');
+        
+        // Get tag value and load videos
+        const tagValue = this.getAttribute('data-tag');
+        loadVideos(tagValue);
+      });
+    });
+
     // Load videos when page loads
     loadVideos();
   </script>
