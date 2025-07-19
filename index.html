@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bhakti Status Creator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Baloo 2', cursive;
+      background: black;
+      overflow: hidden;
+    }
+
+    .header {
+      background: #6e00b3;
+      color: white;
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header input {
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      width: 60%;
+    }
+
+    .create-btn {
+      background: white;
+      color: #6e00b3;
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 10px;
+      background: #fff;
+      gap: 10px;
+    }
+
+    .tag {
+    display: flex;
+      background: #f3f0ff;
+      color: #333;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    #global-mute, #download-btn {
+      position: fixed;
+      z-index: 10;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #global-mute {
+      top: 200px;
+      right: 20px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+    }
+
+    #download-btn {
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.8);
+      color: black;
+      font-weight: bold;
+    }
+
+    .container {
+      height: 70vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      text-align: center;
+                    }
+
+    .reel {
+
+      scroll-snap-align: start;
+      position: relative;
+    }
+
+    video {
+      height:100%;
+    width: 90%;    
+    object-fit: cover;
+    }
+
+    .footer-btn {
+      display: block;
+      width: 90%;
+      margin: 10px auto;
+      padding: 12px;
+      background-color: #f6f6f6;
+      border: 1px solid #ccc;
+      text-align: center;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <input type="text" placeholder="Search..." />
+    <div class="create-btn">+ Create</div>
+  </div>
+
+  <!-- Tags -->
+  <div class="tags">
+    <div class="tag">🔱 श्रावण मास</div>
+    <div class="tag">⭐ Day's Special</div>
+    <div class="tag">🎂 Birthday</div>
+    <div class="tag">Good Morning</div>
+    <div class="tag">🔥 शुभ शुक्रवार</div>
+    <div class="tag">Suvichar</div>
+    <div class="tag">भगवान</div>
+    <div class="tag">Love</div>
+    <div class="tag">📍कांवड़ यात्रा</div>
+    <div class="tag">🌼 नाग पंचमी</div>
+  </div>
+
+  <!-- Mute & Download buttons -->
+  <button id="global-mute">🔇</button>
+  <button id="download-btn">⬇️ Download</button>
+
+  <!-- Reels Container -->
+  <div class="container" id="container">
+    <div class="reel">
+      <video muted loop playsinline preload="auto">
+        <source src="https://res.cloudinary.com/dppgqwfqs/video/upload/v1752891355/videos/gr122qohbemylgqy4jtl.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="reel">
+      <video muted loop playsinline preload="auto">
+        <source src="https://res.cloudinary.com/dppgqwfqs/video/upload/v1752839502/videos/zvzmmajdzuzlba1smll9.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
+  <script>
+    const videos = document.querySelectorAll("video");
+    const reels = document.querySelectorAll(".reel");
+    const muteBtn = document.getElementById("global-mute");
+    const downloadBtn = document.getElementById("download-btn");
+    let isMuted = true;
+    let currentVisibleVideo = null;
+
+    // Set all videos muted
+    videos.forEach(video => {
+      video.muted = true;
+    });
+
+    // Mute / Unmute All
+    muteBtn.addEventListener("click", () => {
+      isMuted = !isMuted;
+      videos.forEach(video => video.muted = isMuted);
+      muteBtn.textContent = isMuted ? "🔇" : "🔊";
+    });
+
+    // Scroll Play using IntersectionObserver
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const video = entry.target.querySelector("video");
+        if (entry.isIntersecting) {
+          currentVisibleVideo = video;
+          video.play().catch(e => console.log(e));
+        } else {
+          video.pause();
+        }
+      });
+    }, { threshold: 0.6 });
+
+    reels.forEach(reel => observer.observe(reel));
+
+    // Download current video
+    downloadBtn.addEventListener("click", () => {
+      if (currentVisibleVideo) {
+        const videoSrc = currentVisibleVideo.querySelector("source").src;
+        const a = document.createElement("a");
+        a.href = videoSrc;
+        a.download = "reel.mp4";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        alert("कोई वीडियो नहीं चल रही है");
+      }
+    });
+  </script>
+
+</body>
+</html>
