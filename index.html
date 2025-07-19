@@ -149,16 +149,7 @@
 
   <!-- Reels Container -->
   <div class="container" id="container">
-    <div class="reel">
-      <video muted loop playsinline preload="auto">
-        <source src="https://res.cloudinary.com/dppgqwfqs/video/upload/v1752891355/videos/gr122qohbemylgqy4jtl.mp4" type="video/mp4">
-      </video>
-    </div>
-    <div class="reel">
-      <video muted loop playsinline preload="auto">
-        <source src="https://res.cloudinary.com/dppgqwfqs/video/upload/v1752839502/videos/zvzmmajdzuzlba1smll9.mp4" type="video/mp4">
-      </video>
-    </div>
+  
   </div>
 
   <script>
@@ -168,6 +159,7 @@
     const downloadBtn = document.getElementById("download-btn");
     let isMuted = true;
     let currentVisibleVideo = null;
+    const videoContainer = document.getElementById('videos');
 
     // Set all videos muted
     videos.forEach(video => {
@@ -181,6 +173,42 @@
       muteBtn.textContent = isMuted ? "🔇" : "🔊";
     });
 
+    // Fetch all videos
+    async function loadVideos() {
+      try {
+        const res = await fetch('/videos');
+        const videos = await res.json();
+
+        videos.forEach(v => addVideoToDOM(v.url));
+      } catch (err) {
+        console.error("Error fetching videos:", err);
+      }
+    }
+
+    function addVideoToDOM(url) {
+      // Create the outer div with class "reel"
+      const reelDiv = document.createElement('div');
+      reelDiv.className = 'reel';
+
+      // Create the video element
+      const vid = document.createElement('video');
+      vid.src = url;
+      vid.controls = true;
+      vid.preload = 'auto';
+      vid.muted = true;
+      vid.loop = true;
+      vid.playsInline = true;
+      vid.autoplay = true;
+
+      // Append video to the reel div
+      reelDiv.appendChild(vid);
+
+      // Add the reel to the container
+      const container = document.getElementById('container');
+      container.prepend(reelDiv); // Add to top
+    }
+
+    
     // Scroll Play using IntersectionObserver
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
