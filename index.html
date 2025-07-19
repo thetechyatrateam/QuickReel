@@ -214,7 +214,7 @@
         vid.src = url;
         vid.controls = true;
         vid.preload = "auto";
-        vid.muted = true;
+        vid.muted = isMuted; // Use global mute state
         vid.loop = true;
         vid.playsInline = true;
         vid.autoplay = true;
